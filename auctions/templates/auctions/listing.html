@@ -1,0 +1,112 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    <div class="container-xxl px-5">
+        <div class="row justify-content-center">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-danger" role="danger">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+            {% if not listing.status %}
+                {%  if winner == user %}
+                    <h1 style="text-align:center; color:red;">Congratulations!!!</h1>
+                    <h4 style="text-align:center; color:red;">You have won this auction!</h4>
+                {% endif %}
+            {% endif %}
+            <div class="col-md-4 pt-5">
+                    <h2>{{ listing.title }}</h2>
+                    <br>
+                    {% if mine %}
+                        <p><i>Created by: </i><span>You!</span></p>
+                    {% else %}
+                        <p><i>Created by: </i><span>{{ listing.owner }}</span></p>
+                    {% endif %}
+                    <p><i>Starting price: </i><span>${{ listing.starting_bid }}</span></p>
+                    {% if listing.current_bid == None %}
+                        <p><i>Current price: </i><span>${{ listing.starting_bid }}</span></p>
+                    {% else %}
+                        <p><i>Current price: </i><span>${{ bid }}</span></p>
+                    {% endif %}
+                    <p><i>Description: </i><span>{{ listing.description }}</span></p>
+            </div>
+            <div class="col-md-6 pt-5">
+                <img class="img-fluid" src="{{ listing.image }}" alt="default.png">    
+            </div>
+            <div class="col-md-2 pt-5 pb-5">
+                {% if not mine %}
+                    {% if user.is_authenticated %}
+                        {% if in_watchlist %}
+                            <form action="{% url 'watchlist' listing.id %}" method="POST">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger me-5">Remove from my Watchlist</button>
+                            </form>
+                        {% else %}
+                            <form action="{% url 'watchlist' listing.id %}" method="POST">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-warning btn-lg me-5">Add to my Watchlist!</button>
+                            </form>
+                        {% endif %}
+                    {% endif %}
+                {% else %}
+                    <form action="{% url 'closed' listing.id %}" method="POST">
+                            {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-lg me-5">Close Auction</button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+        <div class="row mt-5">
+            {% if not mine and listing.status %}
+                {% if user.is_authenticated %}
+                    <div class="col-sm-3 col-md-3 col-lg-2">
+                        <form method="post" action="{% url 'create bid' listing.id %}">
+                            {% csrf_token %}
+                            {% for field in bid_form %}
+                                {{ field }}  
+                            {% endfor %}
+                            <button type="submit" class="btn btn-outline-danger btn-lg mt-2">Bid!</button>
+                        </form>
+                    </div>
+                {% endif %}
+            {% endif %}
+        </div>
+        <div class="container">
+            <h4 class="text-center mt-5">--Comments--</h4>
+            <div class="row justify-content-center mb-2 mt-4">
+                <div class="col-md-6">
+                    {% for comment in comments %}
+                        <div class="container py-2 mb-2 comment_div">
+                            <h6><strong>{{ comment.author }}</strong><i> says: </i>{{ comment.content }}</h6>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% if not mine and listing.status %}
+            {% if user.is_authenticated %}
+            <div class="row justify-content-center mb-2 mt-3">
+                <div class="col-md-6">
+                    <form action="{% url 'comment' listing.id %}" method="post">
+                        {% csrf_token %}
+                        {% for field in CommentForm %}
+                            <div class="row mb-2">
+                                {{ field }}
+                            </div>
+                        {% endfor %}
+                        <div class="text-center pt-2">
+                            <button type="submit" class="btn btn-success">Add your comment!</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            {% else %}
+                <p class="text-center"><b>*Sign in to submit your own comments and/or bid on this item!*</b></p>
+            {% endif %}    
+        {% endif %}
+    </div>
+
+{% endblock %}
+
+
+
